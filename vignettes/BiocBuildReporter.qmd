@@ -71,7 +71,6 @@ Bioconductor build data:
 ```{r get_all_tables}
 # Download all available tables
 # This will cache the tables for quick subsequent access
-# Please NOTE this may take a few minutes to download
 get_all_bbs_tables()
 ```
 
@@ -87,7 +86,6 @@ You can also retrieve individual tables using `get_bbs_table()`:
 
 ```{r get_individual_table}
 # Get the build summary table
-# Please NOTE this table may take a few minutes to download
 build_summary <- get_bbs_table("build_summary")
 
 # Get the info table

@@ -65,8 +65,16 @@ get_bbs_table <- function(tblname=c("build_summary", "info",
         return(get(tblname, envir = .bbs_cache))
     }  
     
-    url <- paste0("https://mghp.osn.xsede.org/bir190004-bucket01/BiocBuildReports/", tblname, ".parquet")
-    message(sprintf("reading '%s' parquet file...", tblname))
+    message(sprintf("reading '%s' parquet file...\n", tblname),
+            "    Initial read may take a few minutes\n",
+            "    Subsequent access through cache will be instantaneous.")
+
+    s3fs <- S3FileSystem$create(
+                             anonymous = TRUE,
+                             endpoint_override = "https://mghp.osn.xsede.org"
+                         )
+    file_path <- paste0("bir190004-bucket01/BiocBuildReports/", tblname, ".parquet")
+    url <- s3fs$OpenInputFile(file_path)
     
     tbl <-
         tryCatch(
