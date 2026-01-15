@@ -22,6 +22,7 @@ Suggests:
     stringr
 Config/testthat/edition: 3
 VignetteBuilder: quarto
+SystemRequirements: quarto
 URL: https://github.com/lshep/BiocBuildReporter.git
 BugReports: https://github.com/lshep/BiocBuildReporter/issues
 biocViews: Software, Infrastructure

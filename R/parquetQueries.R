@@ -25,7 +25,7 @@
 get_package_release_info <- function(packagename){
 
     stopifnot(is.character(packagename), length(packagename)==1L)
-    infoTbl <- suppressMessages(get_bbs_table("info"))
+    infoTbl <- get_bbs_table("info")
     if(packagename %in% infoTbl$Package){
         infoTbl |>
             filter(Package == packagename) |>
@@ -75,7 +75,7 @@ get_package_build_results <- function(packagename, branch="devel"){
     stopifnot(is.character(packagename), length(packagename)==1L)
     stopifnot(is.character(branch), length(branch)==1L)
     
-    summaryTbl <- suppressMessages(get_bbs_table("build_summary"))
+    summaryTbl <- get_bbs_table("build_summary")
     
     if(!(packagename %in% summaryTbl$package)){
         message(sprintf("Package: '%s' Not Found.\n  Please check spelling and capitalization",
@@ -90,7 +90,7 @@ get_package_build_results <- function(packagename, branch="devel"){
         ungroup()  |> 
         select(package, node, stage, version, status, endedat)
 
-    infoTbl <- suppressMessages(get_bbs_table("info"))
+    infoTbl <- get_bbs_table("info")
     
     if(!(branch %in% infoTbl$git_branch[infoTbl$Package == packagename])){
         message(sprintf("Branch: '%s' Not Found.\n  Please check spelling and capitalization",
@@ -175,7 +175,7 @@ package_error_count <- function(packagename, builder=NULL, branch=NULL){
 
     stopifnot(is.character(packagename), length(packagename) == 1L)
     
-    summaryTbl <- suppressMessages(get_bbs_table("build_summary"))
+    summaryTbl <- get_bbs_table("build_summary")
     
     if(!(packagename %in% summaryTbl$package)){
         message(sprintf("Package: '%s' Not Found.\n  Please check spelling and capitalization",
@@ -206,7 +206,7 @@ package_error_count <- function(packagename, builder=NULL, branch=NULL){
         ) |>
         arrange(version, node)
 
-    infoTbl <- suppressMessages(get_bbs_table("info"))
+    infoTbl <- get_bbs_table("info")
     branchTbl <- infoTbl |>
         filter(Package == packagename) |>
         mutate(Version = package_version(Version)) |>
@@ -292,7 +292,7 @@ package_failures_over_time <- function(packagename, builder, failure_cluster_hou
     stopifnot(is.character(builder), length(builder) == 1L)
     stopifnot(is.numeric(failure_cluster_hours), length(failure_cluster_hours) == 1L)
 
-    summaryTbl <- suppressMessages(get_bbs_table("build_summary"))
+    summaryTbl <- get_bbs_table("build_summary")
 
     if (!(packagename %in% summaryTbl$package)) {
         message(sprintf("Package: '%s' Not Found.\n  Please check spelling and capitalization",
@@ -366,7 +366,7 @@ package_failures_over_time <- function(packagename, builder, failure_cluster_hou
 #' @export
 get_latest_branches <- function(infoTbl=NULL) {
 
-    if(is.null(infoTbl)) infoTbl <- suppressMessages(get_bbs_table("info"))
+    if(is.null(infoTbl)) infoTbl <- get_bbs_table("info")
 
     stopifnot("git_branch" %in% names(infoTbl), inherits(infoTbl, "data.frame"))
     
@@ -421,8 +421,8 @@ get_build_report <- function(build_date = Sys.Date(), branch = NULL, builder = N
 
     stopifnot(inherits(build_date, c("Date", "character")))
   
-    summaryTbl <- suppressMessages(get_bbs_table("build_summary"))
-    infoTbl <- suppressMessages(get_bbs_table("info"))
+    summaryTbl <- get_bbs_table("build_summary")
+    infoTbl <- get_bbs_table("info")
     
     build_date <- as.Date(build_date)
     
@@ -499,8 +499,8 @@ get_build_report <- function(build_date = Sys.Date(), branch = NULL, builder = N
 #' @export
 get_failing_packages <- function(branch = NULL, builder = NULL) {
 
-    summaryTbl <- suppressMessages(get_bbs_table("build_summary"))
-    infoTbl <- suppressMessages(get_bbs_table("info"))
+    summaryTbl <- get_bbs_table("build_summary")
+    infoTbl <- get_bbs_table("info")
   
     if (is.null(branch)) {
         branch_filter <- get_latest_branches(infoTbl)
