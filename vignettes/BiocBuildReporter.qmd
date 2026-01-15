@@ -21,14 +21,17 @@ knitr::opts_chunk$set(
 
 # Background
 
-The BiocBuildDB package provides access to years of Bioconductor build system data, representing a comprehensive record of package builds across:
+The BiocBuildReporter package provides access to years of Bioconductor build
+system data, representing a comprehensive record of package builds across:
 
 - **Thousands of packages** in the Bioconductor ecosystem
 - **Multiple R versions** spanning several years of development
 - **Multiple platforms** including Linux, macOS, and Windows
 - **Different build stages** (install, build, check)
 
-The Bioconductor build system runs regularly, testing all packages to ensure they meet quality standards and work correctly across different platforms. This dataset captures the results of these builds, including:
+The Bioconductor build system runs regularly, testing all packages to ensure
+they meet quality standards and work correctly across different platforms. This
+dataset captures the results of these builds, including:
 
 - Build status (OK, WARNING, ERROR, TIMEOUT)
 - Package version information
@@ -36,12 +39,17 @@ The Bioconductor build system runs regularly, testing all packages to ensure the
 - Maintainer details
 - Propagation status to the community
 
-This vignette demonstrates how to use BiocBuildDB functions to explore and analyze this rich dataset to understand:
+This vignette demonstrates how to use BiocBuildReporter functions to explore and
+analyze this rich dataset to understand:
 
 - Package build history and stability
 - Platform-specific issues
 - Package growth over time
 - Common failure patterns
+
+The Bioconductor Build Report Logs are being processed by
+[BiocBuildDB](https://github.com/seandavi/BiocBuildDB). The BiocBuildDB creates
+parquet files read by this package for analysis.
 
 # Setup
 
@@ -52,15 +60,18 @@ library(ggplot2)
 library(tidyr)
 ```
 
-# Accessing BiocBuildDB Data
+# Accessing Bioconductor Build Report Data
 
 ## Getting All Available Tables
 
-The simplest way to start is to download all available data tables. The `get_all_bbs_tables()` function retrieves all three parquet files containing Bioconductor build data:
+The simplest way to start is to download all available data tables. The
+`get_all_bbs_tables()` function retrieves all three parquet files containing
+Bioconductor build data:
 
 ```{r get_all_tables}
 # Download all available tables
 # This will cache the tables for quick subsequent access
+# Please NOTE this may take a few minutes to download
 get_all_bbs_tables()
 ```
 
@@ -76,6 +87,7 @@ You can also retrieve individual tables using `get_bbs_table()`:
 
 ```{r get_individual_table}
 # Get the build summary table
+# Please NOTE this table may take a few minutes to download
 build_summary <- get_bbs_table("build_summary")
 
 # Get the info table
@@ -85,13 +97,18 @@ info <- get_bbs_table("info")
 propagation_status <- get_bbs_table("propagation_status")
 ```
 
-Once downloaded, subsequent calls to these functions will use cached data, making analysis much faster.
+Once downloaded, subsequent calls to these functions will use cached data,
+making analysis much faster.
 
 # Package-Specific Queries
 
+This section shows usage of BiocBuildReporter provided helper functions for
+package specific analysis.
+
 ## Package Release Information
 
-The `get_package_release_info()` function retrieves version and git information for a package across all Bioconductor releases:
+The `get_package_release_info()` function retrieves version and git information
+for a package across all Bioconductor releases:
 
 ```{r package_release_info}
 # Get release information for BiocFileCache
@@ -106,11 +123,39 @@ This shows:
 - Git commit hashes
 - Last commit dates
 
-This is useful for tracking when a package was updated in different Bioconductor releases.
+This is useful for tracking when a package was updated in different Bioconductor
+releases. It also is useful for mapping which git commit correpsonds to the
+currently available version in a given Bioconductor release.
+
+## Package Build Results
+
+The `get_package_build_results()` function retrieves latest build status
+information for a package for all available builders on a given Bioconductor
+branch:
+
+```{r get_package_build_results}
+# Get build results for BiocFileCache on branch RELEASE_3_22
+get_package_build_results("BiocFileCache", branch="RELEASE_3_22")
+```
+
+This shows:
+
+- Node (builder machine name)
+- Build stage (install, build, check)
+- Package version
+- Build status (OK, WARNING, ERROR, TIMEOUT)
+- Date of completion
+- Git branch
+- Git commit hashes
+- Last commit dates
+
+This is useful for showing the last known status of a package on a given
+release for all active builders.
 
 ## Package Error Counts
 
-The `package_error_count()` function provides statistics on how often a package has failed during builds:
+The `package_error_count()` function provides statistics on how often a package
+has failed during builds:
 
 ```{r package_error_count}
 # Get error counts for BiocFileCache
@@ -147,7 +192,40 @@ dev_errors <- package_error_count("BiocFileCache", branch = "devel")
 dev_errors |> filter(version == max(version))
 ```
 
+This is useful for comparing how often a package failed during a given stage vs
+how often it attempted that stage. It gives an overview of frquency of failures.
+
+## Package Failures Over Time
+
+The `package_failure_over_time()` function gives and overview of how long a
+package has been failing on a given builder:
+
+```{r package_failure_over_time}
+# Get failure events for BiocFileCache on nebbiolo1 and
+# group events in a 24 hour period
+package_failures_over_time("BiocFileCache", "nebbiolo1", 24)
+```
+
+This shows:
+
+- Package version
+- Sequential count of number of failure episodes
+- Time of first event failure
+- Time of last event failure
+- Number of failures during that episode
+- Stages of failures
+- Status of stages
+
+This is useful to track the length of failure events to determine if it is
+intermittent or consistent. The grouping of events is given as an argument, in
+this example we used 24 hours. This is to account for branches having different
+build cadenances and allowing sequential builds to be potentially grouped
+together.
+
 # Exploratory Data Analysis
+
+This section provides examples of utilizing the report tables for broader
+analysis and queries.
 
 ## Package Growth Over Time
 
@@ -372,13 +450,74 @@ ggplot(monthly_errors, aes(x = month_date, y = error_rate)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+# Bioconductor Report Overview
+
+This sections demonstrates usage of BiocBuildReporter helper functions for
+broader analysis.
+
+## Get Bioconductor Build Report
+
+The `get_build_report()` function will retrieve the Bioconductor Build Report
+for any given day. Optionally you may specify a specific Bioconductor git branch
+or build machine name to filter further.
+
+```{r get_build_report}
+# Retrieves the build report for all packages on December 29, 2025
+# Filtering also for RELEASE_3_22 branch and linux "nebbiolo1" build machine
+get_build_report("2025-12-29", branch="RELEASE_3_22", builder="nebbiolo2")
+```
+
+This shows:
+
+- Package name
+- Node (builder machine name)
+- Build stage (install, build, check)
+- Package version
+- Status of stage (OK, WARNING, ERROR, TIMEOUT)
+- Time started
+- Time completed
+- Command utilized to initiate run
+- Report md5 sum
+- Git branch
+- Git commit hashes
+- Last commit dates
+
+This function is meant to programatically reproduce a daily report for any given
+day for any given builder and branch.
+
+## Get List of Failing Packages
+
+The `get_failing_packages()` function will return a list of all the currently
+failing packages for a given branch and build machine name:
+
+```{r get_failing_packages}
+# returns all failing packages for RELEASE_3_22 branch
+# for build machine nebbolo2
+get_failing_packages("RELEASE_3_22", "nebbiolo2")
+```
+
+This shows:
+
+- Git branch
+- Package name
+- Package version
+- Node (builder machine name)
+- Build stages (install, build, check)
+- Build statuses (OK, WARNING, ERROR, TIMEOUT)
+
+This gives a quick list of all failing packages. If querying the currently
+active Bioconductor branches (see `get_latest_branches()`), maintainers of these
+packages should be contacted to fix their packages to avoid deprecation and
+removal from Bioconductor.
+
 # Conclusion
 
-The BiocBuildDB package provides powerful tools for analyzing Bioconductor build system data. This vignette demonstrated:
+The BiocBuildReporter package provides powerful tools for analyzing Bioconductor build system data. This vignette demonstrated:
 
 1. **Data Access**: Using `get_bbs_table()` and `get_all_bbs_tables()` to retrieve build data
-2. **Package-Specific Queries**: Using `get_package_release_info()` and `package_error_count()` to analyze individual packages
+2. **Package-Specific Queries**: Using `get_package_release_info()`, `get_package_build_results()`, `package_error_count()` and `package_failures_over_time()` to analyze individual packages
 3. **Exploratory Analysis**: Examining package growth, build statuses, platform differences, and temporal patterns
+4. **Bioconductor Report Overview**: Using `get_build_report()` and `get_failing_packages()`
 
 This dataset can help package developers, maintainers, and the Bioconductor community to:
 
