@@ -65,7 +65,7 @@ get_bbs_table <- function(tblname=c("build_summary", "info",
         return(get(tblname, envir = .bbs_cache))
     }  
     
-    url <- paste0("s3://bioc-builddb-mirror/parquet/", tblname, ".parquet")
+    url <- paste0("https://mghp.osn.xsede.org/bir190004-bucket01/BiocBuildReports/", tblname, ".parquet")
     message(sprintf("reading '%s' parquet file...", tblname))
     
     tbl <-
