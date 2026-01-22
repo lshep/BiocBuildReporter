@@ -4,12 +4,23 @@
 \alias{get_all_bbs_tables}
 \title{Retrieve all available Bioconductor build system parquet files}
 \usage{
-get_all_bbs_tables(assign_to_global = FALSE)
+get_all_bbs_tables(
+  assign_to_global = FALSE,
+  useLocal = TRUE,
+  updateLocal = FALSE
+)
 }
 \arguments{
 \item{assign_to_global}{logical(1) indicating if downloaded tables should be
 assigned to the current global environment for access. Default is FALSE and
 only assigned to custom environment through call to get_bbs_table.}
+
+\item{useLocal}{A logical indicating if files should be read/downloaded from
+a local file or read remotely.}
+
+\item{updateLocal}{A logical indicating if using locally cached files, if the
+files should be re-downloaded/updated. Theorically build reports are updated
+daily so the local data may be out of date if not updated.}
 }
 \value{
 invisible. tables are cached to custom environment unless
@@ -22,7 +33,9 @@ Retrieve all available parquet tables at once.
 This function is a quick wrapper around get_bbs_table to download
 all available parquet files as tibbles.  By default no value is returned and
 the tibbles are stored to the custom environment and can be easily accessed
-through a call to get_bbs_table.
+through a call to get_bbs_table. If useLocal and updateLocal are TRUE, this
+also becomes an easy helper to update/redownloaded all files to the locally
+downloaded location.
 }
 \examples{
 get_all_bbs_tables()

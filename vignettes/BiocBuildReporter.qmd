@@ -53,7 +53,7 @@ parquet files read by this package for analysis.
 
 # Setup
 
-```{r setup}
+```{r, setup}
 library(BiocBuildReporter)
 library(dplyr)
 library(ggplot2)
@@ -68,7 +68,7 @@ The simplest way to start is to download all available data tables. The
 `get_all_bbs_tables()` function retrieves all three parquet files containing
 Bioconductor build data:
 
-```{r get_all_tables}
+```{r, get_all_tables}
 # Download all available tables
 # This will cache the tables for quick subsequent access
 get_all_bbs_tables()
@@ -84,7 +84,7 @@ The function downloads three tables:
 
 You can also retrieve individual tables using `get_bbs_table()`:
 
-```{r get_individual_table}
+```{r, get_individual_table}
 # Get the build summary table
 build_summary <- get_bbs_table("build_summary")
 
@@ -98,6 +98,27 @@ propagation_status <- get_bbs_table("propagation_status")
 Once downloaded, subsequent calls to these functions will use cached data,
 making analysis much faster.
 
+## Remote Read vs Local Download
+
+The package allows the option to either download locally and read from a locally
+saved BiocFileCache, or to read files remotely. The default is to download
+locally and use a cached version of the files for analysis. To read remotely,
+calls to `get_bbs_table` or `get_all_bbs_tables` should be altered to use the
+argument `useLocal=FALSE`.
+
+```{r, read_remote}
+info <- get_bbs_table("info", useLocal=FALSE)
+```
+
+Bioconductor devel reports are daily, meaning cached data can get out of date
+quickly. If using locally cached data, you can update/re-download the files
+using the argument `updateLocal=TRUE`. The default is not to update.
+
+```{r, updateTables}
+info <- get_bbs_table("info", useLocal=TRUE, updateLocal=TRUE)
+```
+
+
 # Package-Specific Queries
 
 This section shows usage of BiocBuildReporter provided helper functions for
@@ -108,7 +129,7 @@ package specific analysis.
 The `get_package_release_info()` function retrieves version and git information
 for a package across all Bioconductor releases:
 
-```{r package_release_info}
+```{r, package_release_info}
 # Get release information for BiocFileCache
 bfc_releases <- get_package_release_info("BiocFileCache")
 bfc_releases
@@ -131,7 +152,7 @@ The `get_package_build_results()` function retrieves latest build status
 information for a package for all available builders on a given Bioconductor
 branch:
 
-```{r get_package_build_results}
+```{r, get_package_build_results}
 # Get build results for BiocFileCache on branch RELEASE_3_22
 get_package_build_results("BiocFileCache", branch="RELEASE_3_22")
 ```
@@ -155,7 +176,7 @@ release for all active builders.
 The `package_error_count()` function provides statistics on how often a package
 has failed during builds:
 
-```{r package_error_count}
+```{r, package_error_count}
 # Get error counts for BiocFileCache
 bfc_errors <- package_error_count("BiocFileCache")
 bfc_errors
@@ -182,7 +203,7 @@ This returns:
 
 For the devel branch, you can filter to the most recent version:
 
-```{r filter_devel_errors}
+```{r, filter_devel_errors}
 # Get devel errors
 dev_errors <- package_error_count("BiocFileCache", branch = "devel")
 
@@ -198,7 +219,7 @@ how often it attempted that stage. It gives an overview of frquency of failures.
 The `package_failure_over_time()` function gives and overview of how long a
 package has been failing on a given builder:
 
-```{r package_failure_over_time}
+```{r, package_failure_over_time}
 # Get failure events for BiocFileCache on nebbiolo1 and
 # group events in a 24 hour period
 package_failures_over_time("BiocFileCache", "nebbiolo1", 24)
@@ -229,7 +250,7 @@ analysis and queries.
 
 Let's explore how the number of Bioconductor packages has grown over time:
 
-```{r package_growth}
+```{r, package_growth}
 # Get info table
 info <- get_bbs_table("info")
 
@@ -261,7 +282,7 @@ ggplot(package_counts, aes(x = reorder(git_branch, n_packages), y = n_packages))
 
 Understanding the distribution of build statuses helps identify overall system health:
 
-```{r build_status}
+```{r, build_status}
 # Get build summary table
 build_summary <- get_bbs_table("build_summary")
 
@@ -295,7 +316,7 @@ ggplot(status_counts, aes(x = reorder(status, n), y = n)) +
 
 Different platforms may have different build characteristics:
 
-```{r platform_analysis}
+```{r, platform_analysis}
 # Analyze build status by platform (node)
 platform_status <- build_summary |>
   group_by(node, status) |>
@@ -326,7 +347,7 @@ head(error_rates, 10)
 
 Understanding which build stage most often fails:
 
-```{r stage_analysis}
+```{r, stage_analysis}
 # Analyze failures by stage
 stage_failures <- build_summary |>
   filter(status %in% c("ERROR", "TIMEOUT")) |>
@@ -352,7 +373,7 @@ ggplot(stage_failures, aes(x = stage, y = n, fill = status)) +
 
 Identify packages with the highest error rates:
 
-```{r problematic_packages}
+```{r, problematic_packages}
 # Find packages with most errors
 package_errors <- build_summary |>
   filter(status %in% c("ERROR", "TIMEOUT")) |>
@@ -372,7 +393,7 @@ head(package_errors, 10)
 
 Analyze package maintenance patterns:
 
-```{r maintainer_analysis}
+```{r, maintainer_analysis}
 # Get unique packages per maintainer
 maintainer_packages <- info |>
   group_by(Maintainer) |>
@@ -401,7 +422,7 @@ ggplot(maintainer_packages, aes(x = n_packages)) +
 
 Analyze build patterns over time:
 
-```{r temporal_analysis}
+```{r, temporal_analysis}
 # Analyze build patterns over time
 build_summary <- build_summary |>
   mutate(
@@ -459,7 +480,7 @@ The `get_build_report()` function will retrieve the Bioconductor Build Report
 for any given day. Optionally you may specify a specific Bioconductor git branch
 or build machine name to filter further.
 
-```{r get_build_report}
+```{r, get_build_report}
 # Retrieves the build report for all packages on December 29, 2025
 # Filtering also for RELEASE_3_22 branch and linux "nebbiolo1" build machine
 get_build_report("2025-12-29", branch="RELEASE_3_22", builder="nebbiolo2")
@@ -488,7 +509,7 @@ day for any given builder and branch.
 The `get_failing_packages()` function will return a list of all the currently
 failing packages for a given branch and build machine name:
 
-```{r get_failing_packages}
+```{r, get_failing_packages}
 # returns all failing packages for RELEASE_3_22 branch
 # for build machine nebbolo2
 get_failing_packages("RELEASE_3_22", "nebbiolo2")
@@ -527,7 +548,7 @@ This dataset can help package developers, maintainers, and the Bioconductor comm
 
 For more information about specific functions, see their documentation with `?function_name`.
 
-```{r sessionInfo}
+```{r, sessionInfo}
 
 sessionInfo()
 

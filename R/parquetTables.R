@@ -16,6 +16,7 @@
 
 
 #' @import arrow
+#' @import BiocFileCache
 #'
 #' @title Retrieve a remotely read parquet file of Bioconductor build data
 #'
@@ -24,7 +25,11 @@
 #' functions read the remote parquet files using the arrow package and return a
 #' tibble. Once retrieved the table is stored in a custom environment for easy
 #' quick reference either to use ad hocly or within pre-defined queries provided
-#' by this package.
+#' by this package. If useLocal is chosen, the remote parquet files are
+#' downloaded locally and cached using BiocFileCache. If already downloaded, the
+#' local file is utilized unless updateLocal is also TRUE in which case the file
+#' will be redownloaded to the local location before reading into the
+#' session. If useLocal is FALSE, the files will be read remotely.
 #'
 #' @details The get_bbs_table returns a tibble but is also saved in a custom
 #' environment for quick easy subsequent reference. There are three tables
@@ -37,6 +42,13 @@
 #'
 #' @param tblname A valid parquet file name. Currently available: build_summary,
 #' info, or propagation_status.
+#'
+#' @param useLocal A logical indicating if files should be read/downloaded
+#' locally or read remotely. 
+#'
+#' @param updateLocal A logical indicating if using locally cached files, if the
+#' files should be re-downloaded/updated. Theorically build reports are updated
+#' daily so the local data may be out of date if not updated.
 #'
 #' @return returns a tibble. 
 #'
@@ -57,37 +69,33 @@
 #'
 #' @export
 get_bbs_table <- function(tblname=c("build_summary", "info",
-                                    "propagation_status")){
+                                    "propagation_status"),
+                          useLocal=TRUE,
+                          updateLocal=FALSE){
+    
     tblname <- match.arg(tblname)
-
+    stopifnot(is.logical(useLocal), length(useLocal)==1L,
+              is.logical(updateLocal), length(updateLocal)==1L)
+    
     if (exists(tblname, envir = .bbs_cache)) {
         message(sprintf("Using cached table '%s'", tblname))
         return(get(tblname, envir = .bbs_cache))
     }  
     
-    message(sprintf("reading '%s' parquet file...\n", tblname),
-            "    Initial read may take a few minutes\n",
-            "    Subsequent access through cache will be instantaneous.")
-
-    s3fs <- S3FileSystem$create(
-                             anonymous = TRUE,
-                             endpoint_override = "https://mghp.osn.xsede.org"
-                         )
-    file_path <- paste0("bir190004-bucket01/BiocBuildReports/", tblname, ".parquet")
-    url <- s3fs$OpenInputFile(file_path)
+    url <- .getUrl(tblname, useLocal, updateLocal)
     
     tbl <-
         tryCatch(
             arrow::read_parquet(url),
             error = function(e){
                 warning(
-                    sprintf("Could not read '%s' from remote location (%s)",
+                    sprintf("Could not read '%s' from location (%s)",
                             tblname, conditionMessage(e)),
                     call. = FALSE
                 )
-                return(NULL)
+                    return(NULL)
             })
-
+    
     if (!is.null(tbl)) {
         assign(tblname, tbl, envir = .bbs_cache)
     }
@@ -103,6 +111,13 @@ get_bbs_table <- function(tblname=c("build_summary", "info",
 #' assigned to the current global environment for access. Default is FALSE and
 #' only assigned to custom environment through call to get_bbs_table.
 #'
+#' @param useLocal A logical indicating if files should be read/downloaded from
+#' a local file or read remotely. 
+#'
+#' @param updateLocal A logical indicating if using locally cached files, if the
+#' files should be re-downloaded/updated. Theorically build reports are updated
+#' daily so the local data may be out of date if not updated.
+#'
 #' @return invisible. tables are cached to custom environment unless
 #' assign_to_global is TRUE.
 #'
@@ -111,7 +126,9 @@ get_bbs_table <- function(tblname=c("build_summary", "info",
 #' @details This function is a quick wrapper around get_bbs_table to download
 #' all available parquet files as tibbles.  By default no value is returned and
 #' the tibbles are stored to the custom environment and can be easily accessed
-#' through a call to get_bbs_table.
+#' through a call to get_bbs_table. If useLocal and updateLocal are TRUE, this
+#' also becomes an easy helper to update/redownloaded all files to the locally
+#' downloaded location.
 #' 
 #' @author Lori Shepherd
 #'
@@ -130,9 +147,13 @@ get_bbs_table <- function(tblname=c("build_summary", "info",
 #' build_summary |> filter(package == "BiocFileCache", status %in% c("TIMEOUT", "ERROR"), str_starts(node, "nebbiolo")) 
 #' }
 #' @export 
-get_all_bbs_tables <- function(assign_to_global = FALSE) {
+get_all_bbs_tables <- function(assign_to_global = FALSE,
+                               useLocal=TRUE,
+                               updateLocal=FALSE) {
 
-    stopifnot(is.logical(assign_to_global), length(assign_to_global)==1L)
+    stopifnot(is.logical(assign_to_global), length(assign_to_global)==1L,
+              is.logical(useLocal), length(useLocal)==1L,
+              is.logical(updateLocal), length(updateLocal)==1L)
     
     table_names <- c("build_summary", "info", "propagation_status")
     tables <- list()

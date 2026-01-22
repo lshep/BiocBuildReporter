@@ -4,11 +4,22 @@
 \alias{get_bbs_table}
 \title{Retrieve a remotely read parquet file of Bioconductor build data}
 \usage{
-get_bbs_table(tblname = c("build_summary", "info", "propagation_status"))
+get_bbs_table(
+  tblname = c("build_summary", "info", "propagation_status"),
+  useLocal = TRUE,
+  updateLocal = FALSE
+)
 }
 \arguments{
 \item{tblname}{A valid parquet file name. Currently available: build_summary,
 info, or propagation_status.}
+
+\item{useLocal}{A logical indicating if files should be read/downloaded
+locally or read remotely.}
+
+\item{updateLocal}{A logical indicating if using locally cached files, if the
+files should be re-downloaded/updated. Theorically build reports are updated
+daily so the local data may be out of date if not updated.}
 }
 \value{
 returns a tibble.
@@ -19,7 +30,11 @@ interrogate. Parquet files of condensed reports are provided remotely. These
 functions read the remote parquet files using the arrow package and return a
 tibble. Once retrieved the table is stored in a custom environment for easy
 quick reference either to use ad hocly or within pre-defined queries provided
-by this package.
+by this package. If useLocal is chosen, the remote parquet files are
+downloaded locally and cached using BiocFileCache. If already downloaded, the
+local file is utilized unless updateLocal is also TRUE in which case the file
+will be redownloaded to the local location before reading into the
+session. If useLocal is FALSE, the files will be read remotely.
 }
 \details{
 The get_bbs_table returns a tibble but is also saved in a custom
