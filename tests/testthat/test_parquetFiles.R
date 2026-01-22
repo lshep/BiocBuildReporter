@@ -41,3 +41,31 @@ test_that("get_all_bbs_tables_work", {
    
    
 })
+
+test_that("remote_connections_available",{
+
+    remote_url_base <- "https://mghp.osn.xsede.org/bir190004-bucket01/BiocBuildReports/"
+    
+    url_exists <- function(url) {
+        con <- url(url)
+        suppressWarnings({
+            tryCatch({
+                open(con)
+                close(con)
+                TRUE
+            }, error = function(e) {
+                try(close(con), silent = TRUE)
+                FALSE
+            })
+        })
+    }
+    expect_error(url_exists("notthere"))
+    expect_true(url_exists("https://bioconductor.org"))
+    
+    tbls <- c("build_summary", "info", "propagation_status")
+    for(tbl in tbls){
+        url <- paste0(remote_url_base, tbl, ".parquet")
+        expect_true(url_exists(url))
+    }
+    
+})
