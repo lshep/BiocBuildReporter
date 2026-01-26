@@ -159,7 +159,7 @@ get_all_bbs_tables <- function(assign_to_global = FALSE,
     tables <- list()
   
     for (tblname in table_names) {
-        tbl <- get_bbs_table(tblname)
+        tbl <- get_bbs_table(tblname, useLocal=useLocal, updateLocal=updateLocal)
         tables[[tblname]] <- tbl
         
         if (assign_to_global && !is.null(tbl)) {
