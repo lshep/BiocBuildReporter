@@ -144,7 +144,12 @@ get_bbs_table <- function(tblname=c("build_summary", "info",
 #' library(dplyr)
 #' # find the times the package BiocFileCache failed on linux nebbiolo builders
 #' \donttest{
-#' build_summary |> filter(package == "BiocFileCache", status %in% c("TIMEOUT", "ERROR"), str_starts(node, "nebbiolo")) 
+#' build_summary |> 
+#'   filter(
+#'     package == "BiocFileCache", 
+#'     status %in% c("TIMEOUT", "ERROR"), 
+#'     str_starts(node, "nebbiolo")
+#'   ) 
 #' }
 #' @export 
 get_all_bbs_tables <- function(assign_to_global = FALSE,

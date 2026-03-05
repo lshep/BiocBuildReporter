@@ -47,7 +47,12 @@ library(stringr)
 library(dplyr)
 # find the times the package BiocFileCache failed on linux nebbiolo builders
 \donttest{
-build_summary |> filter(package == "BiocFileCache", status \%in\% c("TIMEOUT", "ERROR"), str_starts(node, "nebbiolo")) 
+build_summary |> 
+  filter(
+    package == "BiocFileCache", 
+    status \%in\% c("TIMEOUT", "ERROR"), 
+    str_starts(node, "nebbiolo")
+  ) 
 }
 }
 \seealso{
