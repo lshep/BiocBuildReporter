@@ -76,6 +76,26 @@ test_that("get_latest_branches", {
     
 })
 
+
+test_that("list_all_branches", {
+
+    expect_error(get_all_branches(data.frame()))
+    res <- list_all_branches()
+    expect_true(length(res) > 0)
+    expect_true(is.character(res))
+    expect_true(all(get_latest_branches() %in% res))
+})
+
+
+test_that("list_all_builders", {
+
+    expect_error(get_all_builders(data.frame()))
+    res <- list_all_builders()
+    expect_true(length(res) > 0)
+    expect_true(is.character(res))
+})
+
+
 test_that("get_build_report", {
     expect_error(get_build_report("NotADate"))
     res <-  get_build_report("2025-12-29")

@@ -1,28 +1,25 @@
 Package: BiocBuildReporter
 Type: Package
 Title: Functions to process a bioconductor build report database
-Version: 0.99.0
+Version: 0.99.1
 Description: This package reads remote parquet files that have processed Bioconductor build report logs. Users may query the tables directly for specific information or use pre-defined helper functions for common queries. The logs processed are from https://bioconductor.org/checkResults/. In the future we will extend this package out to include processing of r-universe logs.
 Depends: R (>= 4.6.0)
 Imports: arrow, dplyr, BiocFileCache
 License: Apache License (>= 2)
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.3.3
 Authors@R: c(
-    person("Sean", "Davis", role = c("aut"), email = 'seandavi@gmail.com'),
-    person("Lori", "Shepherd", role = c("aut", "cre"), email = "lori.shepherd@roswellpark.org"))    
+    person(given="Sean", family="Davis", role = c("aut"), email = 'seandavi@gmail.com'),
+    person(given="Lori", family="Shepherd", role = c("aut", "cre"), email = "lori.shepherd@roswellpark.org",comment=c(ORCID = "0000-0002-3242-0582")))    
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
-    quarto,
     ggplot2,
     tidyr,
     stringr
 Config/testthat/edition: 3
-VignetteBuilder: quarto
-SystemRequirements: quarto
+VignetteBuilder: knitr
 URL: https://github.com/lshep/BiocBuildReporter.git
 BugReports: https://github.com/lshep/BiocBuildReporter/issues
 biocViews: Software, Infrastructure

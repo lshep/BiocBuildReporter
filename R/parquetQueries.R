@@ -93,7 +93,7 @@ get_package_build_results <- function(packagename, branch="devel"){
     infoTbl <- get_bbs_table("info")
     
     if(!(branch %in% infoTbl$git_branch[infoTbl$Package == packagename])){
-        message(sprintf("Branch: '%s' Not Found.\n  Please check spelling and capitalization",
+        message(sprintf("Branch: '%s' Not Found.\n  Please check spelling and capitalization against list_all_branches()",
                         branch))
         return(NULL)
     }
@@ -187,7 +187,7 @@ package_error_count <- function(packagename, builder=NULL, branch=NULL){
     
     if (!is.null(builder)){
         if(!builder %in% pkgTbl$node){
-            message(sprintf("Builder: '%s' Not Found after filtering for '%s'.\n  Please check spelling and capitalization",
+            message(sprintf("Builder: '%s' Not Found after filtering for '%s'.\n  Please check spelling and capitalization against list_all_builders()",
                             builder, packagename))
         }else{        
             pkgTbl <- pkgTbl |> filter(node %in% builder)
@@ -222,7 +222,7 @@ package_error_count <- function(packagename, builder=NULL, branch=NULL){
     
     if (!is.null(branch)){
         if(!branch %in% countTbl$git_branch){
-            message(sprintf("Branch: '%s' Not Found after filtering for '%s'.\n  Please check spelling and capitalization",
+            message(sprintf("Branch: '%s' Not Found after filtering for '%s'.\n  Please check spelling and capitalization against list_all_branches()",
                             branch, packagename))
         }else{
             countTbl <- countTbl |> filter(git_branch %in% branch)
@@ -301,7 +301,7 @@ package_failures_over_time <- function(packagename, builder, failure_cluster_hou
     }
 
     if (!(builder %in% summaryTbl$node)) {
-        message(sprintf("Builder: '%s' Not Found.\n  Please check spelling and capitalization",
+        message(sprintf("Builder: '%s' Not Found.\n  Please check spelling and capitalization against list_all_builders()",
                         builder))
         return(NULL)
     }
@@ -379,6 +379,64 @@ get_latest_branches <- function(infoTbl=NULL) {
     }
     
     c("devel", latest_release)
+}
+
+
+#' @title Get list of all Bioconductor git branches
+#'
+#' @description Get list of allBioconductor git branches
+#'
+#' @details Get list of all Bioconductor git branches
+#'
+#' @param infoTbl downloaded paraquet info table retrieved from
+#' get_bbs_table('info') that includes git_branch information.
+#'
+#' @return character() vector listing all options for "branch"
+#'
+#' @seealso get_bbs_table
+#'
+#' @aliases list_all_branches
+#'
+#' @examples
+#' list_all_branches()
+#' 
+#' @export
+list_all_branches <- function(infoTbl=NULL) {
+
+    if(is.null(infoTbl)) infoTbl <- get_bbs_table("info")
+
+    stopifnot("git_branch" %in% names(infoTbl), inherits(infoTbl, "data.frame"))
+    
+    infoTbl |> distinct(git_branch) |> pull(git_branch)
+}
+
+
+#' @title Get list of all Bioconductor builders
+#'
+#' @description Get list of allBioconductor builders
+#'
+#' @details Get list of all Bioconductor builders
+#'
+#' @param summaryTbl downloaded paraquet build_summary table retrieved from
+#' get_bbs_table('build_summary') that includes builder (node)  information.
+#'
+#' @return character() vector listing all options for "builder"
+#'
+#' @seealso get_bbs_table
+#'
+#' @aliases list_all_builders
+#'
+#' @examples
+#' list_all_builders()
+#' 
+#' @export
+list_all_builders <- function(summaryTbl=NULL) {
+
+    if(is.null(summaryTbl)) summaryTbl <- get_bbs_table("build_summary")
+
+    stopifnot("node" %in% names(summaryTbl), inherits(summaryTbl, "data.frame"))
+    
+    summaryTbl |> distinct(node) |> pull(node)
 }
 
 

@@ -2,9 +2,13 @@
 title: "BiocBuildReporter Data Use Cases"
 author: "BiocBuildReporter Team"
 format: html
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{BiocBuildReporter Data Use Cases}
-  %\VignetteEngine{quarto::html}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -51,7 +55,24 @@ The Bioconductor Build Report Logs are being processed by
 [BiocBuildDB](https://github.com/seandavi/BiocBuildDB). The BiocBuildDB creates
 parquet files read by this package for analysis.
 
-# Setup
+# Installation and Loading
+
+`BiocBuildReporter` is a _Bioconductor_ package and can be installed through
+`BiocManager::install()`.
+
+```{r, install, eval = FALSE}
+if (!"BiocManager" %in% rownames(installed.packages()))
+     install.packages("BiocManager")
+BiocManager::install("BiocFileCache", dependencies=TRUE)
+```
+
+After the package is installed, it can be loaded into _R_ workspace by
+
+```{r, library, results='hide', warning=FALSE, message=FALSE}
+library(BiocBuildReporter)
+```
+
+We will also load libraries need to run this vignette:
 
 ```{r, setup}
 library(BiocBuildReporter)
