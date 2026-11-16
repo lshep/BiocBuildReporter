@@ -7,7 +7,8 @@
 get_all_bbs_tables(
   assign_to_global = FALSE,
   useLocal = TRUE,
-  updateLocal = FALSE
+  updateLocal = FALSE,
+  source = getOption("BiocBuildReporter.source", "bbs")
 )
 }
 \arguments{
@@ -21,6 +22,8 @@ a local file or read remotely.}
 \item{updateLocal}{A logical indicating if using locally cached files, if the
 files should be re-downloaded/updated. Theorically build reports are updated
 daily so the local data may be out of date if not updated.}
+
+\item{source}{"bbs" or "r-universe"; see get_bbs_table.}
 }
 \value{
 invisible. tables are cached to custom environment unless

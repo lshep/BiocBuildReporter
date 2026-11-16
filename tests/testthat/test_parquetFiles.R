@@ -69,3 +69,20 @@ test_that("remote_connections_available",{
     }
     
 })
+
+test_that("r-universe source works", {
+    skip_if_not_installed("duckdb")
+    skip_if_offline()
+    info <- get_bbs_table("info", source = "r-universe")
+    expect_true(exists("r-universe:info", envir = .bbs_cache))
+    expect_true(all(c("Package", "Version", "git_branch", "git_last_commit",
+                      "git_last_commit_date") %in% names(info)))
+    expect_error(get_bbs_table("propagation_status", source = "r-universe"))
+    expect_error(get_bbs_table("info", source = "NotValid"))
+    old <- options(BiocBuildReporter.source = "r-universe")
+    on.exit(options(old))
+    # the option switches the default source for every query function
+    expect_true(all(get_bbs_table("info")$source == "r-universe"))
+    expect_s3_class(get_package_release_info("DESeq2"), "data.frame")
+    rm("r-universe:info", envir = .bbs_cache)
+})

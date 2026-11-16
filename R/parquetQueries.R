@@ -515,7 +515,7 @@ get_build_report <- function(build_date = Sys.Date(), branch = NULL, builder = N
             return(NULL)
         }
     }
-    stage_levels <- c("install", "buildsrc", "checksrc")
+    stage_levels <- c("install", "buildsrc", "checksrc", "buildbin", "bioccheck")
     
     daily_report <- daily_report |> 
         mutate(stage = factor(stage, levels = stage_levels),

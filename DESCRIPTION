@@ -7,11 +7,12 @@ Depends: R (>= 4.6.0)
 Imports: arrow, dplyr, BiocFileCache
 License: Apache License (>= 2)
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 Authors@R: c(
     person(given="Sean", family="Davis", role = c("aut"), email = 'seandavi@gmail.com'),
     person(given="Lori", family="Shepherd", role = c("aut", "cre"), email = "lori.shepherd@roswellpark.org",comment=c(ORCID = "0000-0002-3242-0582")))    
-Suggests: 
+Suggests:
+    duckdb,
+    DBI,
     BiocStyle,
     testthat (>= 3.0.0),
     knitr,
@@ -24,3 +25,4 @@ VignetteBuilder: knitr
 URL: https://github.com/lshep/BiocBuildReporter.git
 BugReports: https://github.com/lshep/BiocBuildReporter/issues
 biocViews: Software, Infrastructure
+Config/roxygen2/version: 8.1.0

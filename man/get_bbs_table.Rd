@@ -7,7 +7,8 @@
 get_bbs_table(
   tblname = c("build_summary", "info", "propagation_status"),
   useLocal = TRUE,
-  updateLocal = FALSE
+  updateLocal = FALSE,
+  source = getOption("BiocBuildReporter.source", "bbs")
 )
 }
 \arguments{
@@ -20,6 +21,15 @@ locally or read remotely.}
 \item{updateLocal}{A logical indicating if using locally cached files, if the
 files should be re-downloaded/updated. Theorically build reports are updated
 daily so the local data may be out of date if not updated.}
+
+\item{source}{Where build results come from: "bbs" (the Bioconductor Build
+System parquet files) or "r-universe" (r-universe builds, read through
+DuckDB views in the same table shape; needs the duckdb package). Defaults
+to getOption("BiocBuildReporter.source", "bbs"), so
+options(BiocBuildReporter.source = "r-universe") switches every query
+function in this package. r-universe has no propagation_status table. For
+r-universe, useLocal is ignored: tables are read fresh once per session and
+re-read when updateLocal is TRUE.}
 }
 \value{
 returns a tibble.
@@ -54,6 +64,11 @@ library(dplyr)
 # all the package Lori Shepherd maintains
 info |> filter(Maintainer == "Lori Shepherd") |> distinct(Package)
 
+\donttest{
+# the same table for r-universe builds
+if (requireNamespace("duckdb", quietly = TRUE))
+    ru_info <- get_bbs_table("info", source = "r-universe")
+}
 
 }
 \seealso{
