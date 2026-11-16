@@ -50,6 +50,15 @@
 #' files should be re-downloaded/updated. Theorically build reports are updated
 #' daily so the local data may be out of date if not updated.
 #'
+#' @param source Where build results come from: "bbs" (the Bioconductor Build
+#' System parquet files) or "r-universe" (r-universe builds, read through
+#' DuckDB views in the same table shape; needs the duckdb package). Defaults
+#' to getOption("BiocBuildReporter.source", "bbs"), so
+#' options(BiocBuildReporter.source = "r-universe") switches every query
+#' function in this package. r-universe has no propagation_status table. For
+#' r-universe, useLocal is ignored: tables are read fresh once per session and
+#' re-read when updateLocal is TRUE.
+#'
 #' @return returns a tibble. 
 #'
 #' @author Lori Shepherd
@@ -66,16 +75,26 @@
 #' # all the package Lori Shepherd maintains
 #' info |> filter(Maintainer == "Lori Shepherd") |> distinct(Package)
 #'
+#' \donttest{
+#' # the same table for r-universe builds
+#' if (requireNamespace("duckdb", quietly = TRUE))
+#'     ru_info <- get_bbs_table("info", source = "r-universe")
+#' }
 #'
 #' @export
 get_bbs_table <- function(tblname=c("build_summary", "info",
                                     "propagation_status"),
                           useLocal=TRUE,
-                          updateLocal=FALSE){
+                          updateLocal=FALSE,
+                          source=getOption("BiocBuildReporter.source", "bbs")){
     
     tblname <- match.arg(tblname)
+    source <- match.arg(source, c("bbs", "r-universe"))
     stopifnot(is.logical(useLocal), length(useLocal)==1L,
               is.logical(updateLocal), length(updateLocal)==1L)
+
+    if (source == "r-universe")
+        return(.getRuniverseTable(tblname, updateLocal))
     
     if (exists(tblname, envir = .bbs_cache) & !updateLocal & useLocal) {
         message(sprintf("Using cached table '%s'", tblname))
@@ -118,6 +137,8 @@ get_bbs_table <- function(tblname=c("build_summary", "info",
 #' files should be re-downloaded/updated. Theorically build reports are updated
 #' daily so the local data may be out of date if not updated.
 #'
+#' @param source "bbs" or "r-universe"; see get_bbs_table.
+#'
 #' @return invisible. tables are cached to custom environment unless
 #' assign_to_global is TRUE.
 #'
@@ -154,17 +175,22 @@ get_bbs_table <- function(tblname=c("build_summary", "info",
 #' @export 
 get_all_bbs_tables <- function(assign_to_global = FALSE,
                                useLocal=TRUE,
-                               updateLocal=FALSE) {
+                               updateLocal=FALSE,
+                               source=getOption("BiocBuildReporter.source", "bbs")) {
 
     stopifnot(is.logical(assign_to_global), length(assign_to_global)==1L,
               is.logical(useLocal), length(useLocal)==1L,
               is.logical(updateLocal), length(updateLocal)==1L)
     
+    source <- match.arg(source, c("bbs", "r-universe"))
     table_names <- c("build_summary", "info", "propagation_status")
+    if (source == "r-universe") # ponytail: no propagation data yet
+        table_names <- c("build_summary", "info")
     tables <- list()
   
     for (tblname in table_names) {
-        tbl <- get_bbs_table(tblname, useLocal=useLocal, updateLocal=updateLocal)
+        tbl <- get_bbs_table(tblname, useLocal=useLocal, updateLocal=updateLocal,
+                             source=source)
         tables[[tblname]] <- tbl
         
         if (assign_to_global && !is.null(tbl)) {

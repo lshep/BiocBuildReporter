@@ -139,6 +139,27 @@ using the argument `updateLocal=TRUE`. The default is not to update.
 info <- get_bbs_table("info", useLocal=TRUE, updateLocal=TRUE)
 ```
 
+## r-universe Build Results
+
+Build results from r-universe are available in the same table shape with
+`source = "r-universe"`, which needs the `duckdb` package. Setting the
+`BiocBuildReporter.source` option switches every function in this package,
+including the queries below.
+
+```{r, runiverse, eval=FALSE}
+build_summary <- get_bbs_table("build_summary", source = "r-universe")
+
+options(BiocBuildReporter.source = "r-universe")
+get_failing_packages()
+```
+
+The extra columns `universe` (`bioc` is devel, `bioc-release` is release),
+`check`, `r_version`, `job` and `log_url` follow the BBS columns. `node` is an
+r-universe platform rather than a machine, `bioccheck` and `buildbin` are
+stages BBS does not have, and r-universe has no `propagation_status` table yet.
+The column mapping is documented with the
+[registry](https://github.com/seandavi/bioc-infrastructure/blob/main/packages/registry/docs/api.md#biocbuilddb-shaped-views-scriptsbbs_viewssql).
+
 
 # Package-Specific Queries
 
